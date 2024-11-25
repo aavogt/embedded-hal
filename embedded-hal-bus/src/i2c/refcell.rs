@@ -1,5 +1,6 @@
 use core::cell::RefCell;
 use embedded_hal::i2c::{ErrorType, I2c};
+use embedded_hal_0_2;
 
 /// `RefCell`-based shared bus [`I2c`] implementation.
 ///
@@ -117,5 +118,43 @@ where
     ) -> Result<(), Self::Error> {
         let bus = &mut *self.bus.borrow_mut();
         bus.transaction(address, operations)
+    }
+}
+
+impl<'a, T> embedded_hal_0_2::blocking::i2c::WriteRead for RefCellDevice<'a, T>
+where
+    T: embedded_hal_0_2::blocking::i2c::WriteRead,
+{
+    type Error = T::Error;
+    fn write_read(&mut self, addr: u8, bytes: &[u8], buffer: &mut [u8]) -> Result<(), Self::Error> {
+        let bus = &mut *self.bus.borrow_mut();
+        bus.write_read(addr, bytes, buffer)?;
+        Ok(())
+    }
+}
+
+impl<'a, T> embedded_hal_0_2::blocking::i2c::Read for RefCellDevice<'a, T>
+where
+    T: embedded_hal_0_2::blocking::i2c::Read,
+{
+    type Error = T::Error;
+
+    fn read(&mut self, addr: u8, buffer: &mut [u8]) -> Result<(), Self::Error> {
+        let bus = &mut *self.bus.borrow_mut();
+        bus.read(addr, buffer)?;
+        Ok(())
+    }
+}
+
+impl<'a, T> embedded_hal_0_2::blocking::i2c::Write for RefCellDevice<'a, T>
+where
+    T: embedded_hal_0_2::blocking::i2c::Write,
+{
+    type Error = T::Error;
+
+    fn write(&mut self, addr: u8, bytes: &[u8]) -> Result<(), Self::Error> {
+        let bus = &mut *self.bus.borrow_mut();
+        bus.write(addr, bytes)?;
+        Ok(())
     }
 }
